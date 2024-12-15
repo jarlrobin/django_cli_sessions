@@ -1,0 +1,4 @@
+ipython
+ipython-genutils
+jedi
+requests
