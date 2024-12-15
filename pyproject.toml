@@ -1,0 +1,36 @@
+[build-system]
+requires = [
+    "ipython",
+    "ipython-genutils",
+    "jedi",
+    "requests",
+    "setuptools",
+]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "django_cli_sessions"
+version = "0.0.1"
+authors = [
+  { name="Jarl-Robin Bjerkgård Evensen", email="jarlrobin.evensen@gmail.com" },
+]
+description = "Personal project to make a CLI session that can be used in python shells"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "ipython",
+    "ipython-genutils",
+    "jedi",
+    "requests",
+    "setuptools",
+]
+
+[project.urls]
+Homepage = "https://github.com/jarlrobin/django_cli_sessions"
+Issues = "https://github.com/jarlrobin/django_cli_sessions/issues"
