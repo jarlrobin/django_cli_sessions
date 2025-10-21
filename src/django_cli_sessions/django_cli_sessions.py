@@ -53,6 +53,9 @@ class DjangoCLISession:
         """
         api_url = f'{self.url}/{path}'
         headers= self.get_headers()
+        if "extra_headers" in kwargs:
+            custom_headers = kwargs.pop("extra_headers")
+            headers.update(custom_headers)
         return getattr(self.session, method)(api_url, *args, **kwargs,
                                              headers=headers)
 
