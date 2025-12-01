@@ -5,18 +5,21 @@ import requests
 from django_cli_sessions import utils
 
 
-class DjangoCLISession:
+class DjangoCLISessionClient:
     """
+    Creates a client to be used in ipython shells
     """
-    def __init__(self, url='', init_path='', login_path='',
-                 username=None, password=None):
-        self.url = url if url else 'http://localhost'
+
+    def __init__(
+        self, url="", init_path="", login_path="", username=None, password=None
+    ):
+        self.url = url if url else "http://localhost"
         self.username = username
         self.password = password
 
         self.session = requests.session()
-        self.init_url = f'{self.url}/{init_path}'
-        self.login_url = f'{self.url}/{login_path}'
+        self.init_url = f"{self.url}/{init_path}"
+        self.login_url = f"{self.url}/{login_path}"
 
         self.login()
 
@@ -25,62 +28,78 @@ class DjangoCLISession:
         Login to the Django site
         """
         login_data = {
-            'username': self.username,
-            'password': self.password,
+            "username": self.username,
+            "password": self.password,
         }
         init_response = self.session.get(self.init_url)
 
         if init_response.status_code != HTTPStatus.OK:
-            error_msg = ('Initialisation failed, ',
-                         f'error {init_response._content}')
+            error_msg = f"Initialisation failed, error {init_response._content}"
             raise ValueError(error_msg)
 
-        login_response = self.session.post(url=self.login_url,
-                                           json=login_data,
-                                           headers=self.get_headers())
+        login_response = self.session.post(
+            url=self.login_url, json=login_data, headers=self.get_base_headers()
+        )
         if login_response.status_code != HTTPStatus.OK:
-            error_msg = (f'Login failed, error {login_response._content}, ',
-                         f'status_code {login_response.status_code}')
+            error_msg = (
+                f"Login failed, error {login_response._content}, ",
+                f"status_code {login_response.status_code}",
+            )
             raise ValueError(error_msg)
 
-    def get_headers(self):
+    def get_base_headers(self):
         """
+        Get the base headers for cross site tokens
         """
-        return {"X-CSRFToken": self.session.cookies.get("csrftoken", '')}
+        return {"X-CSRFToken": self.session.cookies.get("csrftoken", "")}
 
     def django_request(self, method, path, *args, **kwargs):
         """
+        Perform a request to your Django site
         """
-        api_url = f'{self.url}/{path}'
-        headers= self.get_headers()
+        api_url = f"{self.url}/{path}"
+        headers = self.get_base_headers()
         if "extra_headers" in kwargs:
             custom_headers = kwargs.pop("extra_headers")
             headers.update(custom_headers)
-        return getattr(self.session, method)(api_url, *args, **kwargs,
-                                             headers=headers)
+        return getattr(self.session, method)(api_url, *args, **kwargs, headers=headers)
 
 
-class DjangoCLISessionWithEndpoints(DjangoCLISession):
+class DjangoCLISessionClientWithEndpoints(DjangoCLISessionClient):
     """
+    Creates a client to be used in ipython shells,
+    with endpoint info from a Django app
     """
-    def __init__(self, url='', init_path='', login_path='',
-                 username=None, password=None, filepath=None):
+
+    def __init__(
+        self,
+        url="",
+        init_path="",
+        login_path="",
+        username=None,
+        password=None,
+        filepath=None,
+    ):
         if not filepath:
-            raise ValueError('No filepath provided')
+            raise ValueError("No filepath provided")
 
-        super().__init__(url=url, init_path=init_path, login_path=login_path,
-                         username=username, password=password)
+        super().__init__(
+            url=url,
+            init_path=init_path,
+            login_path=login_path,
+            username=username,
+            password=password,
+        )
 
         self.filepath = filepath
         self.endpoints = utils.parse_endpoints_from_json(self.filepath)
-        self.endpoints_by_name = self.endpoints['by_name']
-        self.endpoints_by_module = self.endpoints['by_module']
-        self.endpoints_by_app = self.endpoints['by_app']
+        self.endpoints_by_name = self.endpoints["by_name"]
+        self.endpoints_by_module = self.endpoints["by_module"]
+        self.endpoints_by_app = self.endpoints["by_app"]
 
-
-    def format_url_variables(self, endpoint_details, variables):
+    def format_path_variables(self, endpoint_details, variables):
         """
-        Format URL variables based on the mapper
+        Format URL path variables based on the mapper
         created from the URL details in the JSON
 
         Formats a URL like:
@@ -88,11 +107,11 @@ class DjangoCLISessionWithEndpoints(DjangoCLISession):
         To:
             /users/get/1/
         """
-        format_string_mapper = endpoint_details['format_string_mapper']
+        format_string_mapper = endpoint_details["format_string_mapper"]
         if format_string_mapper.keys() != variables.keys():
-            raise ValueError('Variables do not match')
+            raise ValueError("Variables do not match")
 
-        url = endpoint_details['url']
+        url = endpoint_details["url"]
         for key, val in variables.items():
             format_string = format_string_mapper[key]
             url = url.replace(format_string, str(val))
