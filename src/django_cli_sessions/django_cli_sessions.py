@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from urllib.parse import urljoin
 
 import requests
 
@@ -57,7 +58,7 @@ class DjangoCLISessionClient:
         """
         Perform a request to your Django site
         """
-        api_url = f"{self.url}/{path}"
+        api_url = urljoin(self.url, path)
         headers = self.get_base_headers()
         if "extra_headers" in kwargs:
             custom_headers = kwargs.pop("extra_headers")
